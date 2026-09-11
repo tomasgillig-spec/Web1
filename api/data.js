@@ -22,7 +22,26 @@ function monthLabel(key) {
 
 async function getAuthClient() {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const key = (process.env.GOOGLE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+  let key = process.env.GOOGLE_PRIVATE_KEY || '';
+
+  key = key.trim();
+  // If the value was pasted with surrounding quotes, strip them
+  if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1);
+  }
+  // Convert literal \n (backslash-n as text) into real newlines
+  if (key.includes('\\n')) {
+    key = key.replace(/\\n/g, '\n');
+  }
+
+  if (!key.includes('-----BEGIN PRIVATE KEY-----') || !key.includes('-----END PRIVATE KEY-----')) {
+    throw new Error(
+      'GOOGLE_PRIVATE_KEY no tiene el formato esperado (falta el encabezado/pie ' +
+      '-----BEGIN PRIVATE KEY-----). Volvé a pegar el valor completo del campo ' +
+      '"private_key" del JSON de la Service Account, tal cual está.'
+    );
+  }
+
   const auth = new google.auth.JWT(email, null, key, [
     'https://www.googleapis.com/auth/spreadsheets.readonly',
   ]);
