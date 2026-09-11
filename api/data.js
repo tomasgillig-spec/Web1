@@ -7,10 +7,30 @@ const ESTADOS = [
   'Propuesta enviada', 'Interesado', 'No interesado', 'Cerrado - Ganado', 'Cerrado - Perdido'
 ];
 
+function parseSheetDate(raw) {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  // Google Sheets (locale es-AR) returns dates as "DD/MM/YYYY" formatted text.
+  // JS's native Date parser assumes MM/DD/YYYY for slash-separated strings,
+  // which silently misreads e.g. "01/09/2026" (1 Sep) as 9 Jan. Parse explicitly.
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) {
+    const day = parseInt(m[1], 10);
+    const month = parseInt(m[2], 10);
+    const year = parseInt(m[3], 10);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return new Date(year, month - 1, day);
+    }
+  }
+  // Fallback for ISO-like strings (YYYY-MM-DD) or other unambiguous formats
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
 function monthKey(date) {
   // returns "YYYY-MM"
-  const d = new Date(date);
-  if (isNaN(d)) return null;
+  const d = parseSheetDate(date);
+  if (!d) return null;
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
