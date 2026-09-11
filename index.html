@@ -229,9 +229,10 @@ function fmtPct(n){ return (n*100).toFixed(1) + '%'; }
 async function load(){
   try{
     const resp = await fetch('/api/data');
-    if(!resp.ok) throw new Error('HTTP ' + resp.status);
-    DATA = await resp.json();
-    if(DATA.error) throw new Error(DATA.error);
+    const body = await resp.json().catch(() => ({}));
+    if(!resp.ok) throw new Error((body.error || ('HTTP ' + resp.status)) + (body.detail ? ' — ' + body.detail : ''));
+    DATA = body;
+    if(DATA.error) throw new Error(DATA.error + (DATA.detail ? ' — ' + DATA.detail : ''));
     document.getElementById('loading').style.display='none';
     document.getElementById('content').style.display='block';
     document.getElementById('updated-at').textContent =
