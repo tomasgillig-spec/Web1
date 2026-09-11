@@ -3,49 +3,120 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UADEL — Tablero de Prospección</title>
+<title>UADEL — Tablero de Prospección | CP&amp;A</title>
 <script src="/chart.umd.js"></script>
 <style>
+  @font-face{
+    font-family:'Poppins';
+    src:url('/fonts/poppins-latin-500-normal.woff2') format('woff2');
+    font-weight:500; font-style:normal; font-display:swap;
+  }
+  @font-face{
+    font-family:'Poppins';
+    src:url('/fonts/poppins-latin-600-normal.woff2') format('woff2');
+    font-weight:600; font-style:normal; font-display:swap;
+  }
+  @font-face{
+    font-family:'Poppins';
+    src:url('/fonts/poppins-latin-700-normal.woff2') format('woff2');
+    font-weight:700; font-style:normal; font-display:swap;
+  }
+  @font-face{
+    font-family:'Poppins';
+    src:url('/fonts/poppins-latin-800-normal.woff2') format('woff2');
+    font-weight:800; font-style:normal; font-display:swap;
+  }
+  @font-face{
+    font-family:'Source Sans Pro';
+    src:url('/fonts/source-sans-pro-latin-400-normal.woff2') format('woff2');
+    font-weight:400; font-style:normal; font-display:swap;
+  }
+  @font-face{
+    font-family:'Source Sans Pro';
+    src:url('/fonts/source-sans-pro-latin-600-normal.woff2') format('woff2');
+    font-weight:600; font-style:normal; font-display:swap;
+  }
+  @font-face{
+    font-family:'Source Sans Pro';
+    src:url('/fonts/source-sans-pro-latin-700-normal.woff2') format('woff2');
+    font-weight:700; font-style:normal; font-display:swap;
+  }
+
   :root{
-    --navy:#122A35;
-    --teal:#2E6E8E;
-    --teal-light:#DCE6EC;
-    --amber:#C97B2E;
-    --bg:#F4F6F7;
+    /* Paleta institucional CP&A */
+    --charcoal:#4F4E50;
+    --near-black:#000000;
+    --maroon:#4D0409;
+    --red:#AD0404;
+    --red-bright:#D11528;
+    --white:#FFFFFF;
+    --gray-mid:#9A999E;
+    --gray-light:#CDCED3;
+    --terracotta:#C38C7A;
+
+    --bg:#F6F5F5;
     --card:#FFFFFF;
-    --ink:#17262C;
-    --muted:#5E727A;
-    --line:#DDE5E8;
+    --ink:#252426;
+    --muted:#726F72;
+    --line:#E4E2E3;
     --good:#3E7D5A;
-    --bad:#B4463C;
   }
   *{box-sizing:border-box;}
   body{
     margin:0;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-family:'Source Sans Pro',-apple-system,Helvetica,Arial,sans-serif;
     background:var(--bg);
     color:var(--ink);
   }
+  h1,h2,.value,.brand-word{font-family:'Poppins',sans-serif;}
+
   header{
-    background:var(--navy);
+    position:relative;
+    background:var(--charcoal);
+    background-image:linear-gradient(135deg, var(--charcoal) 60%, var(--maroon) 190%);
     color:#fff;
-    padding:28px 40px;
+    padding:22px 40px;
     display:flex;
     justify-content:space-between;
-    align-items:flex-end;
+    align-items:center;
     flex-wrap:wrap;
-    gap:16px;
+    gap:18px;
+    border-bottom:3px solid var(--red-bright);
+    overflow:hidden;
   }
+  header::before{
+    content:'';
+    position:absolute;
+    top:-60%;
+    right:-10%;
+    width:520px;
+    height:520px;
+    background:radial-gradient(circle, rgba(209,21,40,0.35) 0%, rgba(209,21,40,0) 70%);
+    animation:glow-drift 14s ease-in-out infinite alternate;
+    pointer-events:none;
+  }
+  @keyframes glow-drift{
+    from{ transform:translate(0,0) scale(1); }
+    to{ transform:translate(-40px,40px) scale(1.15); }
+  }
+  @media(prefers-reduced-motion: reduce){
+    header::before{ animation:none; }
+  }
+  header > *{position:relative; z-index:1;}
+  .brand{display:flex; align-items:center; gap:16px;}
+  .brand img{height:46px; width:auto; display:block;}
+  .brand-divider{width:1px; height:38px; background:rgba(255,255,255,0.25);}
   header h1{
     margin:0;
-    font-size:1.5rem;
-    font-weight:650;
+    font-size:1.28rem;
+    font-weight:700;
     letter-spacing:-0.01em;
   }
   header p{
-    margin:4px 0 0;
-    color:#A9C0CC;
-    font-size:0.92rem;
+    margin:3px 0 0;
+    color:#D8D3D3;
+    font-size:0.85rem;
+    font-weight:400;
   }
   .month-picker{
     display:flex;
@@ -53,17 +124,17 @@
     gap:10px;
   }
   .month-picker label{
-    font-size:0.85rem;
-    color:#A9C0CC;
+    font-size:0.82rem;
+    color:#D8D3D3;
   }
   select{
-    background:#1B3A47;
+    background:rgba(0,0,0,0.25);
     color:#fff;
-    border:1px solid #2E5C6E;
+    border:1px solid rgba(255,255,255,0.3);
     border-radius:6px;
     padding:8px 12px;
-    font-size:0.9rem;
-    font-family:inherit;
+    font-size:0.88rem;
+    font-family:'Source Sans Pro',sans-serif;
   }
   main{
     max-width:1180px;
@@ -72,12 +143,13 @@
   }
   section{margin-bottom:40px;}
   h2{
-    font-size:1.05rem;
-    font-weight:650;
-    color:var(--navy);
+    font-size:1rem;
+    font-weight:700;
+    color:var(--charcoal);
     margin:0 0 14px;
-    padding-bottom:8px;
-    border-bottom:2px solid var(--teal-light);
+    padding-left:12px;
+    border-left:4px solid var(--red-bright);
+    line-height:1.3;
   }
   .cards{
     display:grid;
@@ -87,21 +159,28 @@
   .card{
     background:var(--card);
     border:1px solid var(--line);
-    border-radius:10px;
+    border-top:3px solid var(--gray-light);
+    border-radius:6px;
     padding:18px 20px;
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 16px rgba(37,36,38,0.1);
   }
   .card .value{
-    font-size:1.9rem;
+    font-size:1.85rem;
     font-weight:700;
-    color:var(--navy);
+    color:var(--charcoal);
     line-height:1.1;
   }
   .card .label{
-    font-size:0.82rem;
+    font-size:0.8rem;
     color:var(--muted);
     margin-top:6px;
   }
-  .card.accent .value{color:var(--teal);}
+  .card.accent{border-top-color:var(--red-bright);}
+  .card.accent .value{color:var(--red);}
   .two-col{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -111,7 +190,7 @@
   .chart-card{
     background:var(--card);
     border:1px solid var(--line);
-    border-radius:10px;
+    border-radius:6px;
     padding:20px;
   }
   table{
@@ -119,32 +198,35 @@
     border-collapse:collapse;
     background:var(--card);
     border:1px solid var(--line);
-    border-radius:10px;
+    border-radius:6px;
     overflow:hidden;
   }
   th,td{
     text-align:left;
     padding:10px 14px;
-    font-size:0.88rem;
+    font-size:0.87rem;
     border-bottom:1px solid var(--line);
   }
   th{
-    background:var(--teal);
+    background:var(--charcoal);
     color:#fff;
     font-weight:600;
+    font-family:'Poppins',sans-serif;
+    font-size:0.78rem;
+    letter-spacing:0.01em;
   }
   tr:last-child td{border-bottom:none;}
-  tr.total td{font-weight:700; background:var(--teal-light);}
+  tr.total td{font-weight:700; background:#F2EFEF;}
   .bar-row{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
   .bar-label{width:90px; font-size:0.85rem; color:var(--muted);}
-  .bar-track{flex:1; height:10px; background:var(--teal-light); border-radius:5px; overflow:hidden;}
-  .bar-fill{height:100%; background:var(--teal); border-radius:5px;}
-  .bar-pct{width:52px; text-align:right; font-size:0.85rem; font-weight:600; color:var(--navy);}
+  .bar-track{flex:1; height:9px; background:var(--gray-light); border-radius:5px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--red-bright); border-radius:5px;}
+  .bar-pct{width:52px; text-align:right; font-size:0.85rem; font-weight:600; color:var(--charcoal);}
   footer{
     text-align:center;
     color:var(--muted);
-    font-size:0.8rem;
-    padding:20px;
+    font-size:0.78rem;
+    padding:24px;
   }
   #loading, #error{
     max-width:1180px;
@@ -152,15 +234,19 @@
     text-align:center;
     color:var(--muted);
   }
-  #error{color:var(--bad); display:none;}
+  #error{color:var(--red);}
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <h1>UADEL — Tablero de Prospección Comercial</h1>
-    <p id="updated-at">Cargando datos…</p>
+  <div class="brand">
+    <img src="/img/logo-cpa.png" alt="Claudio Piscicelli & Asociados">
+    <div class="brand-divider"></div>
+    <div>
+      <h1>UADEL — Tablero de Prospección Comercial</h1>
+      <p id="updated-at">Cargando datos…</p>
+    </div>
   </div>
   <div class="month-picker">
     <label for="mes">Período</label>
@@ -169,7 +255,7 @@
 </header>
 
 <div id="loading">Cargando datos del tablero…</div>
-<div id="error"></div>
+<div id="error" style="display:none;"></div>
 
 <main id="content" style="display:none;">
 
@@ -196,11 +282,13 @@
 
   <section class="two-col">
     <div class="chart-card">
-      <h2 style="border:none; margin-bottom:6px;">Contactos agregados por mes</h2>
+      <h2 style="border:none; padding-left:0; margin-bottom:2px;">Contactos agregados por mes</h2>
+      <p style="margin:0 0 10px; font-size:0.78rem; color:var(--muted);">Tocá una barra para filtrar el tablero por ese mes</p>
       <canvas id="chart-altas" height="220"></canvas>
     </div>
     <div class="chart-card">
-      <h2 style="border:none; margin-bottom:6px;">Envíos por mes</h2>
+      <h2 style="border:none; padding-left:0; margin-bottom:2px;">Envíos por mes</h2>
+      <p style="margin:0 0 10px; font-size:0.78rem; color:var(--muted);">Tocá una barra para filtrar el tablero por ese mes</p>
       <canvas id="chart-envios" height="220"></canvas>
     </div>
   </section>
@@ -217,7 +305,7 @@
 
 </main>
 
-<footer>UADEL · CP&amp;A — Reporte generado automáticamente desde la base de prospección</footer>
+<footer>UADEL · CLAUDIO PISCICELLI &amp; ASOCIADOS — Reporte generado automáticamente desde la base de prospección</footer>
 
 <script>
 let DATA = null;
@@ -321,25 +409,52 @@ function renderEstado(){
   </table>`;
 }
 
+function selectMonth(key){
+  const sel = document.getElementById('mes');
+  if ([...sel.options].some(o => o.value === key)) {
+    sel.value = key;
+    render();
+    sel.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+}
+
 function renderChartAltas(){
   const labels = DATA.altasPorMes.map(m=>m.mes);
   const values = DATA.altasPorMes.map(m=>m.cantidad);
+  const keys = DATA.altasPorMes.map(m=>m.key);
   if(chartAltas) chartAltas.destroy();
   chartAltas = new Chart(document.getElementById('chart-altas'), {
     type:'bar',
-    data:{labels, datasets:[{label:'Contactos', data:values, backgroundColor:'#2E6E8E', borderRadius:4}]},
-    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
+    data:{labels, datasets:[{label:'Contactos', data:values, backgroundColor:'#4F4E50', hoverBackgroundColor:'#D11528', borderRadius:4}]},
+    options:{
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:(ctx)=> `${ctx.parsed.y} contacto${ctx.parsed.y===1?'':'s'} agregado${ctx.parsed.y===1?'':'s'}`}}
+      },
+      scales:{y:{beginAtZero:true, ticks:{precision:0}}},
+      onHover:(evt, els)=>{ evt.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+      onClick:(evt, els)=>{ if(els.length) selectMonth(keys[els[0].index]); }
+    }
   });
 }
 
 function renderChartEnvios(){
   const labels = DATA.enviosPorMes.map(m=>m.mes);
   const values = DATA.enviosPorMes.map(m=>m.envios);
+  const keys = DATA.enviosPorMes.map(m=>m.key);
   if(chartEnvios) chartEnvios.destroy();
   chartEnvios = new Chart(document.getElementById('chart-envios'), {
     type:'bar',
-    data:{labels, datasets:[{label:'Envíos', data:values, backgroundColor:'#C97B2E', borderRadius:4}]},
-    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
+    data:{labels, datasets:[{label:'Envíos', data:values, backgroundColor:'#D11528', hoverBackgroundColor:'#4F4E50', borderRadius:4}]},
+    options:{
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:(ctx)=> `${ctx.parsed.y} envío${ctx.parsed.y===1?'':'s'}`}}
+      },
+      scales:{y:{beginAtZero:true, ticks:{precision:0}}},
+      onHover:(evt, els)=>{ evt.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+      onClick:(evt, els)=>{ if(els.length) selectMonth(keys[els[0].index]); }
+    }
   });
 }
 
