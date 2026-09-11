@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UADEL — Tablero de Prospección</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#122A35;
+    --teal:#2E6E8E;
+    --teal-light:#DCE6EC;
+    --amber:#C97B2E;
+    --bg:#F4F6F7;
+    --card:#FFFFFF;
+    --ink:#17262C;
+    --muted:#5E727A;
+    --line:#DDE5E8;
+    --good:#3E7D5A;
+    --bad:#B4463C;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  header{
+    background:var(--navy);
+    color:#fff;
+    padding:28px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+  }
+  header h1{
+    margin:0;
+    font-size:1.5rem;
+    font-weight:650;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:4px 0 0;
+    color:#A9C0CC;
+    font-size:0.92rem;
+  }
+  .month-picker{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .month-picker label{
+    font-size:0.85rem;
+    color:#A9C0CC;
+  }
+  select{
+    background:#1B3A47;
+    color:#fff;
+    border:1px solid #2E5C6E;
+    border-radius:6px;
+    padding:8px 12px;
+    font-size:0.9rem;
+    font-family:inherit;
+  }
+  main{
+    max-width:1180px;
+    margin:0 auto;
+    padding:32px 40px 60px;
+  }
+  section{margin-bottom:40px;}
+  h2{
+    font-size:1.05rem;
+    font-weight:650;
+    color:var(--navy);
+    margin:0 0 14px;
+    padding-bottom:8px;
+    border-bottom:2px solid var(--teal-light);
+  }
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px 20px;
+  }
+  .card .value{
+    font-size:1.9rem;
+    font-weight:700;
+    color:var(--navy);
+    line-height:1.1;
+  }
+  .card .label{
+    font-size:0.82rem;
+    color:var(--muted);
+    margin-top:6px;
+  }
+  .card.accent .value{color:var(--teal);}
+  .two-col{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+  }
+  @media(max-width:860px){.two-col{grid-template-columns:1fr;}}
+  .chart-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:20px;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  th,td{
+    text-align:left;
+    padding:10px 14px;
+    font-size:0.88rem;
+    border-bottom:1px solid var(--line);
+  }
+  th{
+    background:var(--teal);
+    color:#fff;
+    font-weight:600;
+  }
+  tr:last-child td{border-bottom:none;}
+  tr.total td{font-weight:700; background:var(--teal-light);}
+  .bar-row{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .bar-label{width:90px; font-size:0.85rem; color:var(--muted);}
+  .bar-track{flex:1; height:10px; background:var(--teal-light); border-radius:5px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--teal); border-radius:5px;}
+  .bar-pct{width:52px; text-align:right; font-size:0.85rem; font-weight:600; color:var(--navy);}
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:0.8rem;
+    padding:20px;
+  }
+  #loading, #error{
+    max-width:1180px;
+    margin:60px auto;
+    text-align:center;
+    color:var(--muted);
+  }
+  #error{color:var(--bad); display:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>UADEL — Tablero de Prospección Comercial</h1>
+    <p id="updated-at">Cargando datos…</p>
+  </div>
+  <div class="month-picker">
+    <label for="mes">Período</label>
+    <select id="mes"><option value="__todos__">Todos</option></select>
+  </div>
+</header>
+
+<div id="loading">Cargando datos del tablero…</div>
+<div id="error"></div>
+
+<main id="content" style="display:none;">
+
+  <section>
+    <h2>Resumen general</h2>
+    <div class="cards" id="cards-resumen"></div>
+  </section>
+
+  <section>
+    <h2>Cobertura por canal de contacto</h2>
+    <div class="chart-card" id="cobertura-canal"></div>
+  </section>
+
+  <section class="two-col">
+    <div>
+      <h2>Avance por rubro</h2>
+      <div id="tabla-rubro"></div>
+    </div>
+    <div>
+      <h2>Contactos por estado</h2>
+      <div id="tabla-estado"></div>
+    </div>
+  </section>
+
+  <section class="two-col">
+    <div class="chart-card">
+      <h2 style="border:none; margin-bottom:6px;">Contactos agregados por mes</h2>
+      <canvas id="chart-altas" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <h2 style="border:none; margin-bottom:6px;">Envíos por mes</h2>
+      <canvas id="chart-envios" height="220"></canvas>
+    </div>
+  </section>
+
+  <section>
+    <h2>Indicadores de envíos (período seleccionado)</h2>
+    <div class="cards" id="cards-envios"></div>
+  </section>
+
+  <section>
+    <h2>Cerrados por industria</h2>
+    <div id="tabla-cerrados"></div>
+  </section>
+
+</main>
+
+<footer>UADEL · CP&amp;A — Reporte generado automáticamente desde la base de prospección</footer>
+
+<script>
+let DATA = null;
+let chartAltas = null;
+let chartEnvios = null;
+
+function fmtPct(n){ return (n*100).toFixed(1) + '%'; }
+
+async function load(){
+  try{
+    const resp = await fetch('/api/data');
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    DATA = await resp.json();
+    if(DATA.error) throw new Error(DATA.error);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('content').style.display='block';
+    document.getElementById('updated-at').textContent =
+      'Actualizado: ' + new Date(DATA.generadoAl).toLocaleString('es-AR');
+
+    const sel = document.getElementById('mes');
+    DATA.meses.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.key; opt.textContent = m.label;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', render);
+    render();
+  }catch(err){
+    document.getElementById('loading').style.display='none';
+    const e = document.getElementById('error');
+    e.style.display='block';
+    e.textContent = 'No se pudo cargar el tablero: ' + err.message;
+  }
+}
+
+function render(){
+  const mesSel = document.getElementById('mes').value;
+  renderResumen();
+  renderCobertura();
+  renderRubro();
+  renderEstado();
+  renderChartAltas();
+  renderChartEnvios(mesSel);
+  renderEnvios(mesSel);
+  renderCerrados(mesSel);
+}
+
+function renderResumen(){
+  const r = DATA.resumen;
+  const el = document.getElementById('cards-resumen');
+  el.innerHTML = `
+    <div class="card"><div class="value">${r.total}</div><div class="label">Total de contactos</div></div>
+    <div class="card accent"><div class="value">${r.conEmail}</div><div class="label">Con email cargado</div></div>
+    <div class="card accent"><div class="value">${r.conTelefono}</div><div class="label">Con teléfono cargado</div></div>
+    <div class="card accent"><div class="value">${r.conLinkedIn}</div><div class="label">Con LinkedIn cargado</div></div>
+  `;
+}
+
+function renderCobertura(){
+  const r = DATA.resumen;
+  const rows = [
+    ['Email', r.conEmail],
+    ['Teléfono', r.conTelefono],
+    ['LinkedIn', r.conLinkedIn],
+  ];
+  const el = document.getElementById('cobertura-canal');
+  el.innerHTML = rows.map(([label, val]) => {
+    const pct = r.total ? val / r.total : 0;
+    return `<div class="bar-row">
+      <div class="bar-label">${label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(pct*100).toFixed(1)}%"></div></div>
+      <div class="bar-pct">${fmtPct(pct)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderRubro(){
+  const el = document.getElementById('tabla-rubro');
+  const totals = DATA.porRubro.reduce((acc,r)=>{
+    acc.total+=r.total; acc.conDato+=r.conDato; acc.reuniones+=r.reuniones; acc.ganados+=r.ganados; return acc;
+  },{total:0,conDato:0,reuniones:0,ganados:0});
+  el.innerHTML = `<table>
+    <tr><th>Rubro</th><th>Total</th><th>Con dato</th><th>% Cob.</th><th>Reuniones</th><th>Ganados</th></tr>
+    ${DATA.porRubro.map(r=>`<tr>
+      <td>${r.rubro}</td><td>${r.total}</td><td>${r.conDato}</td>
+      <td>${fmtPct(r.total?r.conDato/r.total:0)}</td><td>${r.reuniones}</td><td>${r.ganados}</td>
+    </tr>`).join('')}
+    <tr class="total"><td>TOTAL</td><td>${totals.total}</td><td>${totals.conDato}</td>
+      <td>${fmtPct(totals.total?totals.conDato/totals.total:0)}</td><td>${totals.reuniones}</td><td>${totals.ganados}</td></tr>
+  </table>`;
+}
+
+function renderEstado(){
+  const el = document.getElementById('tabla-estado');
+  const total = DATA.porEstado.reduce((s,e)=>s+e.cantidad,0);
+  el.innerHTML = `<table>
+    <tr><th>Estado</th><th>Cantidad</th><th>%</th></tr>
+    ${DATA.porEstado.map(e=>`<tr><td>${e.estado}</td><td>${e.cantidad}</td><td>${fmtPct(total?e.cantidad/total:0)}</td></tr>`).join('')}
+    <tr class="total"><td>TOTAL</td><td>${total}</td><td>100.0%</td></tr>
+  </table>`;
+}
+
+function renderChartAltas(){
+  const labels = DATA.altasPorMes.map(m=>m.mes);
+  const values = DATA.altasPorMes.map(m=>m.cantidad);
+  if(chartAltas) chartAltas.destroy();
+  chartAltas = new Chart(document.getElementById('chart-altas'), {
+    type:'bar',
+    data:{labels, datasets:[{label:'Contactos', data:values, backgroundColor:'#2E6E8E', borderRadius:4}]},
+    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
+  });
+}
+
+function renderChartEnvios(){
+  const labels = DATA.enviosPorMes.map(m=>m.mes);
+  const values = DATA.enviosPorMes.map(m=>m.envios);
+  if(chartEnvios) chartEnvios.destroy();
+  chartEnvios = new Chart(document.getElementById('chart-envios'), {
+    type:'bar',
+    data:{labels, datasets:[{label:'Envíos', data:values, backgroundColor:'#C97B2E', borderRadius:4}]},
+    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}}}
+  });
+}
+
+function envioTotalsFor(mesKey){
+  const rows = mesKey === '__todos__' ? DATA.enviosPorMes : DATA.enviosPorMes.filter(m=>m.key===mesKey);
+  return rows.reduce((acc,r)=>{
+    acc.envios+=r.envios; acc.entregados+=r.entregados; acc.rebotados+=r.rebotados;
+    acc.interesados+=r.interesados; acc.reuniones+=r.reuniones; acc.ganados+=r.ganados; acc.perdidos+=r.perdidos;
+    return acc;
+  },{envios:0,entregados:0,rebotados:0,interesados:0,reuniones:0,ganados:0,perdidos:0});
+}
+
+function renderEnvios(mesKey){
+  const t = envioTotalsFor(mesKey);
+  const acumTotal = envioTotalsFor('__todos__');
+  const el = document.getElementById('cards-envios');
+  el.innerHTML = `
+    <div class="card"><div class="value">${t.envios}</div><div class="label">Envíos en el período</div></div>
+    <div class="card"><div class="value">${acumTotal.envios}</div><div class="label">Envíos acumulados (histórico)</div></div>
+    <div class="card accent"><div class="value">${t.entregados}</div><div class="label">Emails entregados (no rebotados)</div></div>
+    <div class="card accent"><div class="value">${t.interesados}</div><div class="label">Respuestas asertivas</div></div>
+    <div class="card accent"><div class="value">${t.reuniones}</div><div class="label">Reuniones agendadas</div></div>
+    <div class="card"><div class="value">${DATA.oportunidadesAbiertas}</div><div class="label">Oportunidades abiertas (acum.)</div></div>
+    <div class="card"><div class="value">${t.ganados + t.perdidos}</div><div class="label">Cerrados en el período</div></div>
+    <div class="card"><div class="value">${acumTotal.ganados + acumTotal.perdidos}</div><div class="label">Cerrados acumulado</div></div>
+  `;
+}
+
+function renderCerrados(mesKey){
+  const rubros = ['Automotriz','Financiera','Logística','Energía'];
+  const rows = mesKey === '__todos__' ? DATA.cerradosPorIndustriaPorMes : DATA.cerradosPorIndustriaPorMes.filter(m=>m.key===mesKey);
+  const perRubro = {};
+  rubros.forEach(r => perRubro[r] = {ganados:0, perdidos:0});
+  rows.forEach(row => {
+    rubros.forEach(r => {
+      perRubro[r].ganados += (row[r] ? row[r].ganados : 0);
+      perRubro[r].perdidos += (row[r] ? row[r].perdidos : 0);
+    });
+  });
+  const totalG = rubros.reduce((s,r)=>s+perRubro[r].ganados,0);
+  const totalP = rubros.reduce((s,r)=>s+perRubro[r].perdidos,0);
+  const el = document.getElementById('tabla-cerrados');
+  el.innerHTML = `<table>
+    <tr><th>Rubro</th><th>Ganados</th><th>Perdidos</th></tr>
+    ${rubros.map(r=>`<tr><td>${r}</td><td>${perRubro[r].ganados}</td><td>${perRubro[r].perdidos}</td></tr>`).join('')}
+    <tr class="total"><td>TOTAL</td><td>${totalG}</td><td>${totalP}</td></tr>
+  </table>`;
+}
+
+load();
+</script>
+</body>
+</html>
