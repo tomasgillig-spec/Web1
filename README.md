@@ -73,6 +73,30 @@ vercel --prod
 3. Esperá unos minutos a que propague. Vercel activa el SSL (candadito)
    automáticamente, no hay que hacer nada más.
 
+## 5) Ponerle usuario y contraseña al tablero
+
+El sitio queda protegido con autenticación básica (el navegador va a
+mostrar un cartel pidiendo usuario y contraseña antes de dejar ver nada,
+ni el HTML ni los datos).
+
+En Vercel → tu proyecto → Settings → Environment Variables, agregá:
+
+| Nombre | Valor |
+|---|---|
+| `DASH_USER` | el usuario que quieras (ej. `uadel`) |
+| `DASH_PASS` | la contraseña que quieras |
+
+Marcá los 3 entornos igual que con las otras variables, guardá, y
+redeployá (`vercel --prod --force`). A partir de ahí, para entrar hay que
+poner esas credenciales — compartíselas al cliente por un canal aparte
+(no por el mismo link).
+
+Si en algún momento querés sacar la clave, simplemente borrá esas dos
+variables de entorno y redeployá — sin ellas, `middleware.js` bloquea el
+acceso en vez de dejarlo abierto (por seguridad), así que para volver a
+dejarlo sin clave hay que borrar también el archivo `middleware.js` del
+proyecto.
+
 ## Notas
 
 - El VPS de DonWeb no se usa para nada de esto — queda libre para lo que ya
