@@ -496,7 +496,7 @@ function renderEnvios(mesKey){
     <div class="card"><div class="value">${acumTotal.envios}</div><div class="label">Envíos acumulados (histórico)</div></div>
     <div class="card accent"><div class="value">${t.entregados}</div><div class="label">Emails entregados (no rebotados)</div></div>
     <div class="card accent"><div class="value">${t.interesados}</div><div class="label">Respuestas asertivas</div></div>
-    <div class="card accent"><div class="value">${t.reuniones}</div><div class="label">Reuniones agendadas</div></div>
+    <div class="card accent"><div class="value">${t.reuniones}</div><div class="label">Oportunidades derivadas</div></div>
     <div class="card"><div class="value">${DATA.oportunidadesAbiertas}</div><div class="label">Oportunidades abiertas (acum.)</div></div>
     <div class="card"><div class="value">${t.ganados + t.perdidos}</div><div class="label">Cerrados en el período</div></div>
     <div class="card"><div class="value">${acumTotal.ganados + acumTotal.perdidos}</div><div class="label">Cerrados acumulado</div></div>
@@ -525,7 +525,7 @@ function renderCerrados(mesKey){
       acc.ganados+=perRubro[r].ganados; acc.perdidos+=perRubro[r].perdidos; return acc;
     },{reunionAgendada:0,propuestaEnviada:0,ganados:0,perdidos:0});
     document.getElementById(elId).innerHTML = `<table>
-      <tr><th>Rubro</th><th>Reunión agend.</th><th>Propuesta env.</th><th>Ganados</th><th>Perdidos</th></tr>
+      <tr><th>Rubro</th><th>Oport. derivada</th><th>Propuesta env.</th><th>Ganados</th><th>Perdidos</th></tr>
       ${rubros.map(r=>`<tr><td>${r}</td><td>${perRubro[r].reunionAgendada}</td><td>${perRubro[r].propuestaEnviada}</td><td>${perRubro[r].ganados}</td><td>${perRubro[r].perdidos}</td></tr>`).join('')}
       <tr class="total"><td>TOTAL</td><td>${t.reunionAgendada}</td><td>${t.propuestaEnviada}</td><td>${t.ganados}</td><td>${t.perdidos}</td></tr>
     </table>`;

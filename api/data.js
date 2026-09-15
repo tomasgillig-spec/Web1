@@ -3,8 +3,8 @@ const { google } = require('googleapis');
 const SPREADSHEET_ID = process.env.SHEET_ID;
 const RUBROS = ['Automotriz', 'Financiera', 'Logística', 'Energía'];
 const ESTADOS = [
-  'Nuevo', 'Rebotado', 'Contactado', 'En conversación', 'Reunión agendada',
-  'Propuesta enviada', 'Interesado', 'No interesado', 'Cerrado - Ganado', 'Cerrado - Perdido'
+  'Nuevo', 'Enviado', 'Rebotado', 'Contactado', 'Oportunidad derivada',
+  'Propuesta enviada', 'Cerrado - Ganado', 'Cerrado - Perdido'
 ];
 
 function parseSheetDate(raw) {
@@ -122,7 +122,7 @@ module.exports = async (req, res) => {
     const porRubro = RUBROS.map(rubro => {
       const sub = contactos.filter(r => r[cIdx['Industria']] === rubro);
       const conDato = sub.filter(r => r[cIdx['Email']] || r[cIdx['Teléfono']]).length;
-      const reuniones = sub.filter(r => r[cIdx['Estado']] === 'Reunión agendada').length;
+      const reuniones = sub.filter(r => r[cIdx['Estado']] === 'Oportunidad derivada').length;
       const ganados = sub.filter(r => r[cIdx['Estado']] === 'Cerrado - Ganado').length;
       return { rubro, total: sub.length, conDato, reuniones, ganados };
     });
@@ -162,8 +162,8 @@ module.exports = async (req, res) => {
       m.envios += 1;
       if (resultado === 'Rebotado') m.rebotados += 1;
       if (canal === 'Email' && resultado !== 'Rebotado') m.entregados += 1;
-      if (resultado === 'Respondió - Interesado') m.interesados += 1;
-      if (resultado === 'Reunión agendada') m.reuniones += 1;
+      if (resultado === 'Contactado') m.interesados += 1;
+      if (resultado === 'Oportunidad derivada') m.reuniones += 1;
       if (resultado === 'Cerrado - Ganado') m.ganados += 1;
       if (resultado === 'Cerrado - Perdido') m.perdidos += 1;
 
@@ -174,14 +174,14 @@ module.exports = async (req, res) => {
         }
         if (resultado === 'Cerrado - Ganado') industriaMonthly[industria][key].ganados += 1;
         if (resultado === 'Cerrado - Perdido') industriaMonthly[industria][key].perdidos += 1;
-        if (resultado === 'Reunión agendada') industriaMonthly[industria][key].reunionAgendada += 1;
+        if (resultado === 'Oportunidad derivada') industriaMonthly[industria][key].reunionAgendada += 1;
         if (resultado === 'Propuesta enviada') industriaMonthly[industria][key].propuestaEnviada += 1;
       }
     });
 
     // Oportunidades abiertas (aproximado, acumulado total, no por mes)
-    const totalInteresados = log.filter(r => r[lIdx['Resultado']] === 'Respondió - Interesado').length;
-    const totalReuniones = log.filter(r => r[lIdx['Resultado']] === 'Reunión agendada').length;
+    const totalInteresados = log.filter(r => r[lIdx['Resultado']] === 'Contactado').length;
+    const totalReuniones = log.filter(r => r[lIdx['Resultado']] === 'Oportunidad derivada').length;
     const totalGanados = log.filter(r => r[lIdx['Resultado']] === 'Cerrado - Ganado').length;
     const totalPerdidos = log.filter(r => r[lIdx['Resultado']] === 'Cerrado - Perdido').length;
     const oportunidadesAbiertas = Math.max(0, totalInteresados + totalReuniones - totalGanados - totalPerdidos);
