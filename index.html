@@ -379,7 +379,7 @@ async function load(){
       try {
         const resp = await fetch('/api/publish-snapshot', { method: 'POST' });
         const body = await resp.json().catch(() => ({}));
-        if (!resp.ok) throw new Error(body.error || ('HTTP ' + resp.status));
+        if (!resp.ok) throw new Error((body.error || ('HTTP ' + resp.status)) + (body.detail ? ' — ' + body.detail : ''));
         const fecha = new Date(body.publicadoAl).toLocaleString('es-AR');
         const proxima = new Date(body.proximaActualizacionSugerida).toLocaleDateString('es-AR');
         statusEl.className = 'ok';

@@ -1,9 +1,9 @@
-const { head } = require('@vercel/blob');
+import { head } from '@vercel/blob';
 
 const SNAPSHOT_PATH = 'uadel-snapshot.json';
 const STORE_ID = process.env.BLOB_READ_WRITE_TOKEN_STORE_ID;
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     if (!STORE_ID) {
       res.status(500).json({ error: 'Falta configurar Vercel Blob (variable BLOB_READ_WRITE_TOKEN_STORE_ID).' });
@@ -32,4 +32,4 @@ module.exports = async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Error al leer el snapshot.', detail: String(err && err.message || err) });
   }
-};
+}

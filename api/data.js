@@ -1,12 +1,11 @@
-const { computeAggregates } = require('../lib/aggregate');
+import { computeAggregates } from '../lib/aggregate.js';
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     const data = await computeAggregates();
     res.status(200).json(data);
   } catch (err) {
     console.error(err);
-    const status = err.isConfigError ? 500 : 500;
-    res.status(status).json({ error: 'Error al leer los datos.', detail: String(err && err.message || err) });
+    res.status(500).json({ error: 'Error al leer los datos.', detail: String(err && err.message || err) });
   }
-};
+}

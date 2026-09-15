@@ -94,10 +94,12 @@ hojas tiene que usar esa misma función o el mismo criterio, nunca
   cliente no vea datos personales).
 - **Hosting**: Vercel (plan gratis), dominio `uadel.claudiopiscicelli.com`
   vía CNAME en GoDaddy. El VPS de DonWeb NO se usa para esto.
-- **Auth**: protegido con Basic Auth vía `middleware.js` (variables de
-  entorno `DASH_USER` / `DASH_PASS` en Vercel). Sin esas variables
-  configuradas, el middleware bloquea el acceso (falla cerrado, no
-  abierto).
+- **Auth**: protegido con Basic Auth vía `middleware.js`, que hace auth
+  por path — `/cliente` y `/api/client-data` piden
+  `CLIENT_USER`/`CLIENT_PASS`; todo lo demás (`/`, `/api/data`,
+  `/api/publish-snapshot`) pide `DASH_USER`/`DASH_PASS`. Sin esas
+  variables configuradas, el middleware bloquea el acceso (falla
+  cerrado, no abierto).
 - **Variables de entorno en Vercel** (Settings → Environment Variables,
   marcar Production/Preview/Development en cada una):
   - `GOOGLE_SERVICE_ACCOUNT_EMAIL`
@@ -121,9 +123,16 @@ hojas tiene que usar esa misma función o el mismo criterio, nunca
   (`computeAggregates()`) y la usan tanto `api/data.js` (vivo) como
   `api/publish-snapshot.js` (snapshot) — si se cambia algo del cálculo,
   tocar ahí, no duplicar en los otros dos archivos.
-- **`middleware.js`**: hace auth por path — `/cliente` y
-  `/api/client-data` piden `CLIENT_USER`/`CLIENT_PASS`; todo lo demás
-  (`/`, `/api/data`, `/api/publish-snapshot`) pide `DASH_USER`/`DASH_PASS`.
+- **Formato de módulos: TODO el proyecto es ESM** (`"type": "module"` en
+  `package.json`). `middleware.js` necesita `export default`/`export
+  const config` sí o sí (es el formato que exige Routing Middleware de
+  Vercel), y para que no choque con el resto, `api/*.js` y
+  `lib/aggregate.js` también usan `import`/`export` en vez de
+  `require`/`module.exports`. Si se agrega un archivo nuevo en `api/` o
+  `lib/`, mantenerlo en ESM — mezclar CommonJS y ESM en este proyecto ya
+  causó un `MIDDLEWARE_INVOCATION_FAILED` en producción (Vercel compila
+  ESM→CommonJS de forma implícita si falta `"type": "module"`, y esa
+  compilación rompía el middleware).
 - **Identidad visual**: paleta y tipografías de CP&A (manual de marca
   2025) — carbón `#4F4E50`, bordó `#4D0409`, rojo `#AD0404` / `#D11528`,
   tipografía Poppins (títulos) + Source Sans Pro (cuerpo), isologotipo

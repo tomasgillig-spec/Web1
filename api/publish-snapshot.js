@@ -1,11 +1,11 @@
-const { put } = require('@vercel/blob');
-const { computeAggregates } = require('../lib/aggregate');
+import { put } from '@vercel/blob';
+import { computeAggregates } from '../lib/aggregate.js';
 
 const SNAPSHOT_PATH = 'uadel-snapshot.json';
 const DIAS_ENTRE_ACTUALIZACIONES = 15;
 const STORE_ID = process.env.BLOB_READ_WRITE_TOKEN_STORE_ID;
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Método no permitido. Usar POST.' });
     return;
@@ -44,4 +44,4 @@ module.exports = async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'No se pudo publicar el snapshot.', detail: String(err && err.message || err) });
   }
-};
+}
