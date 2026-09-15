@@ -103,7 +103,22 @@ hojas tiene que usar esa misma función o el mismo criterio, nunca
   - `GOOGLE_SERVICE_ACCOUNT_EMAIL`
   - `GOOGLE_PRIVATE_KEY`
   - `SHEET_ID`
-  - `DASH_USER`, `DASH_PASS`
+  - `DASH_USER`, `DASH_PASS` (vista interna, `/`)
+  - `CLIENT_USER`, `CLIENT_PASS` (vista cliente, `/cliente`)
+  - `BLOB_READ_WRITE_TOKEN` (se crea sola al activar Vercel Blob, no se
+    carga a mano)
+- **Vista cliente con snapshot manual**: `/cliente` no consulta Google
+  Sheets en vivo — lee una foto guardada en Vercel Blob
+  (`uadel-snapshot.json`). Se actualiza a mano desde el botón "Publicar
+  snapshot ahora" en la vista interna (`/`), que llama a
+  `POST /api/publish-snapshot`. No hay cron ni actualización automática.
+  La lógica de cálculo de KPIs vive en `dashboard/lib/aggregate.js`
+  (`computeAggregates()`) y la usan tanto `api/data.js` (vivo) como
+  `api/publish-snapshot.js` (snapshot) — si se cambia algo del cálculo,
+  tocar ahí, no duplicar en los otros dos archivos.
+- **`middleware.js`**: hace auth por path — `/cliente` y
+  `/api/client-data` piden `CLIENT_USER`/`CLIENT_PASS`; todo lo demás
+  (`/`, `/api/data`, `/api/publish-snapshot`) pide `DASH_USER`/`DASH_PASS`.
 - **Identidad visual**: paleta y tipografías de CP&A (manual de marca
   2025) — carbón `#4F4E50`, bordó `#4D0409`, rojo `#AD0404` / `#D11528`,
   tipografía Poppins (títulos) + Source Sans Pro (cuerpo), isologotipo

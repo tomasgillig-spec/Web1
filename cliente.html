@@ -136,27 +136,6 @@
     font-size:0.88rem;
     font-family:'Source Sans Pro',sans-serif;
   }
-  #btn-publish{
-    background:var(--red-bright);
-    color:#fff;
-    border:none;
-    border-radius:6px;
-    padding:9px 14px;
-    font-size:0.85rem;
-    font-family:'Source Sans Pro',sans-serif;
-    font-weight:600;
-    cursor:pointer;
-  }
-  #btn-publish:hover{background:var(--red);}
-  #btn-publish:disabled{opacity:0.6; cursor:default;}
-  #publish-status{
-    max-width:1180px;
-    margin:14px auto 0;
-    padding:0 40px;
-    font-size:0.85rem;
-  }
-  #publish-status.ok{color:var(--good);}
-  #publish-status.error{color:var(--red);}
   main{
     max-width:1180px;
     margin:0 auto;
@@ -272,10 +251,8 @@
   <div class="month-picker">
     <label for="mes">Período</label>
     <select id="mes"><option value="__todos__">Todos</option></select>
-    <button id="btn-publish" type="button">Publicar snapshot ahora</button>
   </div>
 </header>
-<div id="publish-status" style="display:none;"></div>
 
 <div id="loading">Cargando datos del tablero…</div>
 <div id="error" style="display:none;"></div>
@@ -350,15 +327,17 @@ function fmtPct(n){ return (n*100).toFixed(1) + '%'; }
 
 async function load(){
   try{
-    const resp = await fetch('/api/data');
+    const resp = await fetch('/api/client-data');
     const body = await resp.json().catch(() => ({}));
     if(!resp.ok) throw new Error((body.error || ('HTTP ' + resp.status)) + (body.detail ? ' — ' + body.detail : ''));
     DATA = body;
     if(DATA.error) throw new Error(DATA.error + (DATA.detail ? ' — ' + DATA.detail : ''));
     document.getElementById('loading').style.display='none';
     document.getElementById('content').style.display='block';
+    const publicado = DATA.publicadoAl ? new Date(DATA.publicadoAl).toLocaleString('es-AR') : '—';
+    const proxima = DATA.proximaActualizacionSugerida ? new Date(DATA.proximaActualizacionSugerida).toLocaleDateString('es-AR') : '—';
     document.getElementById('updated-at').textContent =
-      'Actualizado: ' + new Date(DATA.generadoAl).toLocaleString('es-AR');
+      `Última actualización: ${publicado} · Próxima aproximada: ${proxima}`;
 
     const sel = document.getElementById('mes');
     DATA.meses.forEach(m => {
@@ -368,30 +347,6 @@ async function load(){
     });
     sel.addEventListener('change', render);
     render();
-
-    const btn = document.getElementById('btn-publish');
-    const statusEl = document.getElementById('publish-status');
-    btn.addEventListener('click', async () => {
-      if (!confirm('¿Publicar un snapshot ahora? El cliente va a ver estos datos hasta la próxima publicación.')) return;
-      btn.disabled = true;
-      btn.textContent = 'Publicando…';
-      statusEl.style.display = 'none';
-      try {
-        const resp = await fetch('/api/publish-snapshot', { method: 'POST' });
-        const body = await resp.json().catch(() => ({}));
-        if (!resp.ok) throw new Error(body.error || ('HTTP ' + resp.status));
-        const fecha = new Date(body.publicadoAl).toLocaleString('es-AR');
-        const proxima = new Date(body.proximaActualizacionSugerida).toLocaleDateString('es-AR');
-        statusEl.className = 'ok';
-        statusEl.textContent = `Snapshot publicado (${fecha}). Sugerencia: volver a publicar alrededor del ${proxima}.`;
-      } catch (err) {
-        statusEl.className = 'error';
-        statusEl.textContent = 'No se pudo publicar: ' + err.message;
-      }
-      statusEl.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Publicar snapshot ahora';
-    });
   }catch(err){
     document.getElementById('loading').style.display='none';
     const e = document.getElementById('error');

@@ -97,6 +97,44 @@ acceso en vez de dejarlo abierto (por seguridad), así que para volver a
 dejarlo sin clave hay que borrar también el archivo `middleware.js` del
 proyecto.
 
+## 6) Vista para el cliente (snapshot cada ~15 días)
+
+El sitio tiene dos partes separadas:
+
+- **`/`** — tablero en vivo, con la clave `DASH_USER`/`DASH_PASS` de siempre.
+  Uso interno de la consultora.
+- **`/cliente`** — misma vista, pero con datos **congelados**: no consulta
+  el Google Sheet en cada visita, sino la última "foto" que se haya
+  publicado. Tiene su propia clave (`CLIENT_USER`/`CLIENT_PASS`), distinta
+  a la interna.
+
+La foto se guarda con **Vercel Blob** (almacenamiento de archivos de
+Vercel, gratis en el plan actual). Hay que activarlo una vez:
+
+1. En Vercel → tu proyecto → pestaña **Storage** → **Create Database** →
+   elegí **Blob** → seguí los pasos (no pide tarjeta). Esto crea solo la
+   variable de entorno `BLOB_READ_WRITE_TOKEN` en tu proyecto — no hace
+   falta que la cargues a mano.
+2. Agregá estas dos variables nuevas en Settings → Environment Variables
+   (mismo lugar de siempre, marcando los 3 entornos):
+
+   | Nombre | Valor |
+   |---|---|
+   | `CLIENT_USER` | usuario para el cliente (ej. `uadel-cliente`) |
+   | `CLIENT_PASS` | una contraseña distinta a la interna |
+
+3. Redeployá (`vercel --prod --force`).
+
+**Cómo se actualiza la foto**: entrás al tablero interno (`/`, con tu
+clave de siempre) y apretás el botón **"Publicar snapshot ahora"** arriba
+a la derecha. Eso recalcula todo en el momento y lo guarda — el cliente
+va a ver esos números hasta la próxima vez que apretés el botón. No hay
+nada automático: si no lo apretás, el cliente sigue viendo la foto
+anterior indefinidamente.
+
+Compartile al cliente la URL `https://uadel.claudiopiscicelli.com/cliente`
+junto con `CLIENT_USER`/`CLIENT_PASS` — nunca las credenciales internas.
+
 ## Notas
 
 - El VPS de DonWeb no se usa para nada de esto — queda libre para lo que ya
