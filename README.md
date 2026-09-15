@@ -112,18 +112,27 @@ La foto se guarda con **Vercel Blob** (almacenamiento de archivos de
 Vercel, gratis en el plan actual). Hay que activarlo una vez:
 
 1. En Vercel → tu proyecto → pestaña **Storage** → **Create Database** →
-   elegí **Blob** → seguí los pasos (no pide tarjeta). Esto crea solo la
-   variable de entorno `BLOB_READ_WRITE_TOKEN` en tu proyecto — no hace
-   falta que la cargues a mano.
-2. Agregá estas dos variables nuevas en Settings → Environment Variables
-   (mismo lugar de siempre, marcando los 3 entornos):
+   elegí **Blob** → Access: **Public** → marcá el checkbox **"Add a
+   read-write token env var to this connection"** → seguí los pasos (no
+   pide tarjeta).
+
+   Esto crea automáticamente la variable `BLOB_READ_WRITE_TOKEN_STORE_ID`
+   en tu proyecto (el nombre exacto puede variar un poco según el prefijo
+   que hayas dejado al crear el store) — no hace falta que cargues nada a
+   mano. Vercel autentica automáticamente las funciones del proyecto
+   contra el store (OIDC), así que no usamos ningún token fijo en el
+   código, solo ese `STORE_ID` para saber a qué store escribir/leer.
+2. Confirmá en Settings → Environment Variables que `BLOB_READ_WRITE_TOKEN_STORE_ID`
+   esté ahí, con los 3 entornos marcados (Production/Preview/Development).
+3. En el mismo lugar, agregá estas dos variables nuevas (marcando los
+   3 entornos en cada una):
 
    | Nombre | Valor |
    |---|---|
    | `CLIENT_USER` | usuario para el cliente (ej. `uadel-cliente`) |
    | `CLIENT_PASS` | una contraseña distinta a la interna |
 
-3. Redeployá (`vercel --prod --force`).
+4. Redeployá (`vercel --prod --force`).
 
 **Cómo se actualiza la foto**: entrás al tablero interno (`/`, con tu
 clave de siempre) y apretás el botón **"Publicar snapshot ahora"** arriba

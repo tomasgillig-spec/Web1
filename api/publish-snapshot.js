@@ -3,6 +3,7 @@ const { computeAggregates } = require('../lib/aggregate');
 
 const SNAPSHOT_PATH = 'uadel-snapshot.json';
 const DIAS_ENTRE_ACTUALIZACIONES = 15;
+const STORE_ID = process.env.BLOB_READ_WRITE_TOKEN_STORE_ID;
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -11,9 +12,9 @@ module.exports = async (req, res) => {
   }
 
   try {
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    if (!STORE_ID) {
       res.status(500).json({
-        error: 'Falta configurar Vercel Blob (variable BLOB_READ_WRITE_TOKEN). ' +
+        error: 'Falta configurar Vercel Blob (variable BLOB_READ_WRITE_TOKEN_STORE_ID). ' +
                'Ver README.md, sección de snapshot para el cliente.',
       });
       return;
@@ -35,6 +36,7 @@ module.exports = async (req, res) => {
       addRandomSuffix: false,
       allowOverwrite: true,
       contentType: 'application/json',
+      storeId: STORE_ID,
     });
 
     res.status(200).json({ ok: true, publicadoAl, proximaActualizacionSugerida: snapshot.proximaActualizacionSugerida });
