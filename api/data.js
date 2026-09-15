@@ -116,6 +116,7 @@ module.exports = async (req, res) => {
     const conEmail = contactos.filter(r => r[cIdx['Email']]).length;
     const conTelefono = contactos.filter(r => r[cIdx['Teléfono']]).length;
     const conLinkedIn = contactos.filter(r => r[cIdx['LinkedIn']]).length;
+    const empresasUnicas = new Set(contactos.map(r => r[cIdx['Empresa']]).filter(Boolean)).size;
 
     // ---- Avance por rubro ----
     const porRubro = RUBROS.map(rubro => {
@@ -168,9 +169,13 @@ module.exports = async (req, res) => {
 
       const industria = empresaIndustria[empresa];
       if (industria && RUBROS.includes(industria)) {
-        if (!industriaMonthly[industria][key]) industriaMonthly[industria][key] = { ganados: 0, perdidos: 0 };
+        if (!industriaMonthly[industria][key]) {
+          industriaMonthly[industria][key] = { ganados: 0, perdidos: 0, reunionAgendada: 0, propuestaEnviada: 0 };
+        }
         if (resultado === 'Cerrado - Ganado') industriaMonthly[industria][key].ganados += 1;
         if (resultado === 'Cerrado - Perdido') industriaMonthly[industria][key].perdidos += 1;
+        if (resultado === 'Reunión agendada') industriaMonthly[industria][key].reunionAgendada += 1;
+        if (resultado === 'Propuesta enviada') industriaMonthly[industria][key].propuestaEnviada += 1;
       }
     });
 
@@ -194,7 +199,7 @@ module.exports = async (req, res) => {
     const cerradosPorIndustriaPorMes = allMonthKeys.map(k => {
       const row = { mes: monthLabel(k), key: k };
       RUBROS.forEach(rubro => {
-        const v = industriaMonthly[rubro][k] || { ganados: 0, perdidos: 0 };
+        const v = industriaMonthly[rubro][k] || { ganados: 0, perdidos: 0, reunionAgendada: 0, propuestaEnviada: 0 };
         row[rubro] = v;
       });
       return row;
@@ -202,7 +207,7 @@ module.exports = async (req, res) => {
 
     res.status(200).json({
       generadoAl: new Date().toISOString(),
-      resumen: { total, conEmail, conTelefono, conLinkedIn },
+      resumen: { total, conEmail, conTelefono, conLinkedIn, empresasUnicas },
       porRubro,
       porEstado,
       altasPorMes,

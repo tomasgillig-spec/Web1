@@ -266,13 +266,14 @@
 
   <section>
     <h2>Cobertura por canal de contacto</h2>
+    <p style="margin:-6px 0 10px; font-size:0.8rem; color:var(--muted);" id="cobertura-caption"></p>
     <div class="chart-card" id="cobertura-canal"></div>
   </section>
 
   <section class="two-col">
-    <div>
-      <h2>Avance por rubro</h2>
-      <div id="tabla-rubro"></div>
+    <div class="chart-card">
+      <h2 style="border:none; padding-left:0; margin-bottom:6px;">Contactos por rubro</h2>
+      <canvas id="chart-rubro" height="220"></canvas>
     </div>
     <div>
       <h2>Contactos por estado</h2>
@@ -299,8 +300,18 @@
   </section>
 
   <section>
-    <h2>Cerrados por industria</h2>
-    <div id="tabla-cerrados"></div>
+    <h2>Embudo por industria</h2>
+    <p style="margin:-6px 0 14px; font-size:0.8rem; color:var(--muted);">Incluye etapas que gestiona UADEL, cargadas acá para seguimiento.</p>
+    <div class="two-col">
+      <div>
+        <h2 style="font-size:0.88rem;">Período seleccionado</h2>
+        <div id="tabla-cerrados-periodo"></div>
+      </div>
+      <div>
+        <h2 style="font-size:0.88rem;">Acumulado histórico</h2>
+        <div id="tabla-cerrados-acumulado"></div>
+      </div>
+    </div>
   </section>
 
 </main>
@@ -346,7 +357,7 @@ function render(){
   const mesSel = document.getElementById('mes').value;
   renderResumen();
   renderCobertura();
-  renderRubro();
+  renderChartRubro();
   renderEstado();
   renderChartAltas();
   renderChartEnvios(mesSel);
@@ -359,6 +370,7 @@ function renderResumen(){
   const el = document.getElementById('cards-resumen');
   el.innerHTML = `
     <div class="card"><div class="value">${r.total}</div><div class="label">Total de contactos</div></div>
+    <div class="card"><div class="value">${r.empresasUnicas}</div><div class="label">Empresas únicas</div></div>
     <div class="card accent"><div class="value">${r.conEmail}</div><div class="label">Con email cargado</div></div>
     <div class="card accent"><div class="value">${r.conTelefono}</div><div class="label">Con teléfono cargado</div></div>
     <div class="card accent"><div class="value">${r.conLinkedIn}</div><div class="label">Con LinkedIn cargado</div></div>
@@ -367,6 +379,8 @@ function renderResumen(){
 
 function renderCobertura(){
   const r = DATA.resumen;
+  document.getElementById('cobertura-caption').textContent =
+    `% sobre el total de contactos (${r.total})`;
   const rows = [
     ['Email', r.conEmail],
     ['Teléfono', r.conTelefono],
@@ -383,20 +397,27 @@ function renderCobertura(){
   }).join('');
 }
 
-function renderRubro(){
-  const el = document.getElementById('tabla-rubro');
-  const totals = DATA.porRubro.reduce((acc,r)=>{
-    acc.total+=r.total; acc.conDato+=r.conDato; acc.reuniones+=r.reuniones; acc.ganados+=r.ganados; return acc;
-  },{total:0,conDato:0,reuniones:0,ganados:0});
-  el.innerHTML = `<table>
-    <tr><th>Rubro</th><th>Total</th><th>Con dato</th><th>% Cob.</th><th>Reuniones</th><th>Ganados</th></tr>
-    ${DATA.porRubro.map(r=>`<tr>
-      <td>${r.rubro}</td><td>${r.total}</td><td>${r.conDato}</td>
-      <td>${fmtPct(r.total?r.conDato/r.total:0)}</td><td>${r.reuniones}</td><td>${r.ganados}</td>
-    </tr>`).join('')}
-    <tr class="total"><td>TOTAL</td><td>${totals.total}</td><td>${totals.conDato}</td>
-      <td>${fmtPct(totals.total?totals.conDato/totals.total:0)}</td><td>${totals.reuniones}</td><td>${totals.ganados}</td></tr>
-  </table>`;
+let chartRubro = null;
+const RUBRO_COLORS = ['#4F4E50', '#AD0404', '#D11528', '#9A999E'];
+
+function renderChartRubro(){
+  const labels = DATA.porRubro.map(r=>r.rubro);
+  const values = DATA.porRubro.map(r=>r.total);
+  if(chartRubro) chartRubro.destroy();
+  chartRubro = new Chart(document.getElementById('chart-rubro'), {
+    type:'pie',
+    data:{labels, datasets:[{data:values, backgroundColor:RUBRO_COLORS}]},
+    options:{
+      plugins:{
+        legend:{position:'bottom', labels:{font:{family:'Source Sans Pro'}}},
+        tooltip:{callbacks:{label:(ctx)=>{
+          const total = values.reduce((a,b)=>a+b,0);
+          const pct = total ? (ctx.parsed/total*100).toFixed(1) : '0.0';
+          return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
+        }}}
+      }
+    }
+  });
 }
 
 function renderEstado(){
@@ -405,7 +426,6 @@ function renderEstado(){
   el.innerHTML = `<table>
     <tr><th>Estado</th><th>Cantidad</th><th>%</th></tr>
     ${DATA.porEstado.map(e=>`<tr><td>${e.estado}</td><td>${e.cantidad}</td><td>${fmtPct(total?e.cantidad/total:0)}</td></tr>`).join('')}
-    <tr class="total"><td>TOTAL</td><td>${total}</td><td>100.0%</td></tr>
   </table>`;
 }
 
@@ -485,23 +505,34 @@ function renderEnvios(mesKey){
 
 function renderCerrados(mesKey){
   const rubros = ['Automotriz','Financiera','Logística','Energía'];
-  const rows = mesKey === '__todos__' ? DATA.cerradosPorIndustriaPorMes : DATA.cerradosPorIndustriaPorMes.filter(m=>m.key===mesKey);
-  const perRubro = {};
-  rubros.forEach(r => perRubro[r] = {ganados:0, perdidos:0});
-  rows.forEach(row => {
-    rubros.forEach(r => {
-      perRubro[r].ganados += (row[r] ? row[r].ganados : 0);
-      perRubro[r].perdidos += (row[r] ? row[r].perdidos : 0);
+  const rowsPeriodo = mesKey === '__todos__' ? DATA.cerradosPorIndustriaPorMes : DATA.cerradosPorIndustriaPorMes.filter(m=>m.key===mesKey);
+  const rowsAcum = DATA.cerradosPorIndustriaPorMes;
+
+  function buildTable(rows, elId){
+    const perRubro = {};
+    rubros.forEach(r => perRubro[r] = {reunionAgendada:0, propuestaEnviada:0, ganados:0, perdidos:0});
+    rows.forEach(row => {
+      rubros.forEach(r => {
+        const v = row[r] || {};
+        perRubro[r].reunionAgendada += (v.reunionAgendada || 0);
+        perRubro[r].propuestaEnviada += (v.propuestaEnviada || 0);
+        perRubro[r].ganados += (v.ganados || 0);
+        perRubro[r].perdidos += (v.perdidos || 0);
+      });
     });
-  });
-  const totalG = rubros.reduce((s,r)=>s+perRubro[r].ganados,0);
-  const totalP = rubros.reduce((s,r)=>s+perRubro[r].perdidos,0);
-  const el = document.getElementById('tabla-cerrados');
-  el.innerHTML = `<table>
-    <tr><th>Rubro</th><th>Ganados</th><th>Perdidos</th></tr>
-    ${rubros.map(r=>`<tr><td>${r}</td><td>${perRubro[r].ganados}</td><td>${perRubro[r].perdidos}</td></tr>`).join('')}
-    <tr class="total"><td>TOTAL</td><td>${totalG}</td><td>${totalP}</td></tr>
-  </table>`;
+    const t = rubros.reduce((acc,r)=>{
+      acc.reunionAgendada+=perRubro[r].reunionAgendada; acc.propuestaEnviada+=perRubro[r].propuestaEnviada;
+      acc.ganados+=perRubro[r].ganados; acc.perdidos+=perRubro[r].perdidos; return acc;
+    },{reunionAgendada:0,propuestaEnviada:0,ganados:0,perdidos:0});
+    document.getElementById(elId).innerHTML = `<table>
+      <tr><th>Rubro</th><th>Reunión agend.</th><th>Propuesta env.</th><th>Ganados</th><th>Perdidos</th></tr>
+      ${rubros.map(r=>`<tr><td>${r}</td><td>${perRubro[r].reunionAgendada}</td><td>${perRubro[r].propuestaEnviada}</td><td>${perRubro[r].ganados}</td><td>${perRubro[r].perdidos}</td></tr>`).join('')}
+      <tr class="total"><td>TOTAL</td><td>${t.reunionAgendada}</td><td>${t.propuestaEnviada}</td><td>${t.ganados}</td><td>${t.perdidos}</td></tr>
+    </table>`;
+  }
+
+  buildTable(rowsPeriodo, 'tabla-cerrados-periodo');
+  buildTable(rowsAcum, 'tabla-cerrados-acumulado');
 }
 
 load();
