@@ -1,18 +1,22 @@
 import { head } from '@vercel/blob';
 
 const SNAPSHOT_PATH = 'uadel-snapshot.json';
-const STORE_ID = process.env.BLOB_READ_WRITE_TOKEN_STORE_ID;
+const TOKEN = process.env.BLOB_READ_WRITE_TOKEN
+  || process.env.BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN;
 
 export default async function handler(req, res) {
   try {
-    if (!STORE_ID) {
-      res.status(500).json({ error: 'Falta configurar Vercel Blob (variable BLOB_READ_WRITE_TOKEN_STORE_ID).' });
+    if (!TOKEN) {
+      res.status(500).json({
+        error: 'Falta el token de Vercel Blob (probé BLOB_READ_WRITE_TOKEN y ' +
+               'BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN, ninguna existe).',
+      });
       return;
     }
 
     let meta;
     try {
-      meta = await head(SNAPSHOT_PATH, { storeId: STORE_ID });
+      meta = await head(SNAPSHOT_PATH, { token: TOKEN });
     } catch (e) {
       res.status(404).json({
         error: 'Todavía no se publicó ningún snapshot. Desde el tablero interno, ' +

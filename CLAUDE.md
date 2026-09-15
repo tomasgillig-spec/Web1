@@ -107,13 +107,13 @@ hojas tiene que usar esa misma función o el mismo criterio, nunca
   - `SHEET_ID`
   - `DASH_USER`, `DASH_PASS` (vista interna, `/`)
   - `CLIENT_USER`, `CLIENT_PASS` (vista cliente, `/cliente`)
-  - `BLOB_READ_WRITE_TOKEN_STORE_ID` (se crea sola al activar Vercel
-    Blob — el proyecto autentica contra el store vía OIDC automático de
-    Vercel, no usamos ningún token fijo en el código, solo este
-    `STORE_ID`. Ojo: el nombre exacto de esta variable depende del
-    prefijo que se haya dejado al crear el store en el dashboard de
-    Vercel — verificar en Settings → Environment Variables cuál quedó
-    creada antes de asumir el nombre)
+  - `BLOB_READ_WRITE_TOKEN` o `BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN`
+    (una de las dos, según cómo haya quedado nombrada al activar Vercel
+    Blob). El código prueba ambos nombres en ese orden. Nota: el
+    quickstart de Vercel sugiere autenticar solo con `storeId` vía OIDC,
+    pero en la práctica el SDK instalado (@vercel/blob 0.27.3) tiró
+    "No token found" sin un token explícito — terminamos usando el
+    token clásico, no OIDC.
 - **Vista cliente con snapshot manual**: `/cliente` no consulta Google
   Sheets en vivo — lee una foto guardada en Vercel Blob
   (`uadel-snapshot.json`). Se actualiza a mano desde el botón "Publicar

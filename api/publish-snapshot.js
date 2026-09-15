@@ -3,7 +3,8 @@ import { computeAggregates } from '../lib/aggregate.js';
 
 const SNAPSHOT_PATH = 'uadel-snapshot.json';
 const DIAS_ENTRE_ACTUALIZACIONES = 15;
-const STORE_ID = process.env.BLOB_READ_WRITE_TOKEN_STORE_ID;
+const TOKEN = process.env.BLOB_READ_WRITE_TOKEN
+  || process.env.BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -12,10 +13,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (!STORE_ID) {
+    if (!TOKEN) {
       res.status(500).json({
-        error: 'Falta configurar Vercel Blob (variable BLOB_READ_WRITE_TOKEN_STORE_ID). ' +
-               'Ver README.md, sección de snapshot para el cliente.',
+        error: 'Falta el token de Vercel Blob (probé BLOB_READ_WRITE_TOKEN y ' +
+               'BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN, ninguna existe). ' +
+               'Revisar el nombre exacto en Settings → Environment Variables.',
       });
       return;
     }
@@ -36,7 +38,7 @@ export default async function handler(req, res) {
       addRandomSuffix: false,
       allowOverwrite: true,
       contentType: 'application/json',
-      storeId: STORE_ID,
+      token: TOKEN,
     });
 
     res.status(200).json({ ok: true, publicadoAl, proximaActualizacionSugerida: snapshot.proximaActualizacionSugerida });

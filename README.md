@@ -116,14 +116,14 @@ Vercel, gratis en el plan actual). Hay que activarlo una vez:
    read-write token env var to this connection"** → seguí los pasos (no
    pide tarjeta).
 
-   Esto crea automáticamente la variable `BLOB_READ_WRITE_TOKEN_STORE_ID`
-   en tu proyecto (el nombre exacto puede variar un poco según el prefijo
-   que hayas dejado al crear el store) — no hace falta que cargues nada a
-   mano. Vercel autentica automáticamente las funciones del proyecto
-   contra el store (OIDC), así que no usamos ningún token fijo en el
-   código, solo ese `STORE_ID` para saber a qué store escribir/leer.
-2. Confirmá en Settings → Environment Variables que `BLOB_READ_WRITE_TOKEN_STORE_ID`
-   esté ahí, con los 3 entornos marcados (Production/Preview/Development).
+   Esto crea automáticamente algunas variables de entorno — entre ellas
+   una que termina en `_READ_WRITE_TOKEN` (en las pruebas fue
+   `BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN`, aunque el nombre exacto
+   puede variar). El código prueba primero `BLOB_READ_WRITE_TOKEN` y si
+   no existe, `BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN` — si tu store
+   generó un nombre distinto, avisame para agregarlo a la lista.
+2. Confirmá en Settings → Environment Variables cuál de esas dos
+   variables quedó creada (con los 3 entornos marcados).
 3. En el mismo lugar, agregá estas dos variables nuevas (marcando los
    3 entornos en cada una):
 
