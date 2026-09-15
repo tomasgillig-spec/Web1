@@ -38,7 +38,7 @@ export default function middleware(req) {
       return new Response('La vista del cliente todavía no tiene usuario/contraseña configurados.', { status: 503 });
     }
     if (checkCredentials(req, user, pass)) return;
-    return unauthorized('UADEL Dashboard — Cliente');
+    return unauthorized('UADEL Dashboard - Cliente');
   }
 
   // Everything else (internal dashboard, /api/data, /api/publish-snapshot, static assets)
